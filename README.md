@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# React Quill Image Upload with UploadThing
 
-## Getting Started
+## 🚀 Features
 
-First, run the development server:
+- Rich text editing with React Quill
+- Secure image upload and management
+- Cloud storage with UploadThing
+- File validation and error handling
+
+## 🔧 Setup
+
+### Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install react-quill uploadthing @uploadthing/react sonner
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+UPLOADTHING_TOKEN=your_token
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📝 Key Implementations
 
-## Learn More
+### Image Upload Handler
 
-To learn more about Next.js, take a look at the following resources:
+```typescript
+const uploadImageToCloudStorage = async (file: File): Promise<string> => {
+  // Validate file type and size
+  if (!validateFile(file)) {
+    throw new Error("Invalid file");
+  }
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+  const formData = new FormData();
+  formData.append("file", file);
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+  // Upload to UploadThing
+  const url = await uploadFiles(formData);
+  return url;
+};
+```
 
-## Deploy on Vercel
+### Server-Side Upload Action
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```typescript
+// app/actions/upload.action.ts
+import { UTApi } from "uploadthing/server";
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+export async function uploadFiles(formData: FormData) {
+  const utapi = new UTApi();
+  const file = formData.get("file") as File;
+
+  const response = await utapi.uploadFiles(file);
+  return response.data?.url || "";
+}
+
+export async function deleteFiles(fileUrl: string) {
+  const utapi = new UTApi();
+  await utapi.deleteFiles(fileUrl);
+}
+```
+
+## 🛡️ Validation Constraints
+
+- Supported Formats: JPEG, PNG, GIF, WebP
+- Max File Size: 5MB
+- Automatic file type checking
+- Toast notifications for upload status
+
+## 🔒 Security Features
+
+- Server-side file validation
+- Protected upload routes
+- Environment variable protection
+- Error handling and logging
+
+## 📦 Performance Optimizations
+
+- Uses `useTransition` for non-blocking uploads
+- Dynamic React Quill import
+- Efficient image URL tracking
+
+## 💡 Usage Example
+
+```typescript
+<DynamicReactQuill
+  modules={{
+    toolbar: {
+      handlers: { image: imageHandler },
+    },
+  }}
+  value={content}
+  onChange={handleChange}
+/>
+```
